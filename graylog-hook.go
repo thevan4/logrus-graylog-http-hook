@@ -84,14 +84,12 @@ func (hook *GraylogHook) sendEntry(messageBytes []byte) {
 	for i := 0; i < hook.retries; i++ {
 		reqPost, err := http.NewRequest("POST", hook.graylogAddress, bytes.NewBuffer(messageBytes))
 		if err != nil {
-			fmt.Printf("reqPost err: %v", err)
 			time.Sleep(10 * time.Second)
 			continue
 		}
 
 		respPost, err := hook.httpClient.Do(reqPost)
 		if err != nil {
-			fmt.Printf("respPost err: %v", err)
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -110,7 +108,6 @@ func (hook *GraylogHook) fire() {
 
 //Fire is invoked each time a log is thrown
 func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
-	fmt.Println(entry.Data)
 	grMessage := &GraylogMessage{
 		Version: "1.0",
 		Host:    hook.hostname,
@@ -125,7 +122,6 @@ func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
 
 	messageBytes, err := json.Marshal(grMessage)
 	if err != nil {
-		fmt.Printf("[json] Fail to marshal: %s\n", err.Error())
 		return err
 	}
 
