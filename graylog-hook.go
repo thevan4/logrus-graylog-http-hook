@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"path"
