@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -47,19 +48,20 @@ type GraylogHook struct {
 }
 
 // NewGraylogHook creates a Writer
-func NewGraylogHook(graylogAddress string, retries int, extra map[string]interface{}) *GraylogHook {
+func NewGraylogHook(graylogAddress string, retries int, extra map[string]interface{}, httpClient *http.Client) (*GraylogHook, error) {
 	host, err := os.Hostname()
 	if err != nil {
-		host = "golang-localhost"
+		return nil, err
 	}
 
 	facility := path.Base(os.Args[0])
 
-	// client create is hardcoded
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // TODO: don't skip tls verify
+	if httpClient == nil {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		httpClient = &http.Client{Transport: tr}
 	}
-	client := &http.Client{Transport: tr}
 
 	hook := &GraylogHook{
 		graylogAddress: graylogAddress,
@@ -68,13 +70,13 @@ func NewGraylogHook(graylogAddress string, retries int, extra map[string]interfa
 		extra:          extra,
 		retries:        retries,
 		buf:            make(chan []byte, BufSize),
-		httpClient:     client,
+		httpClient:     httpClient,
 		Level:          logrus.DebugLevel,
 	}
 
 	go hook.fire() // Log in background
 
-	return hook
+	return hook, nil
 }
 
 func (hook *GraylogHook) sendEntry(messageBytes []byte) {
@@ -107,6 +109,7 @@ func (hook *GraylogHook) fire() {
 
 //Fire is invoked each time a log is thrown
 func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
+	fmt.Println(entry.Data)
 	grMessage := &GraylogMessage{
 		Version: "1.0",
 		Host:    hook.hostname,
