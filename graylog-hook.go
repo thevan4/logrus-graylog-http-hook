@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -109,12 +108,11 @@ func (hook *GraylogHook) fire() {
 
 //Fire is invoked each time a log is thrown
 func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
-	fmt.Println(entry.Data)
 	grMessage := &GraylogMessage{
 		Version: "1.0",
 		Host:    hook.hostname,
 		Short:   entry.Message,
-		// Full:     entry.Data,
+		// Full:      entry.Data,
 		TimeUnix:  time.Now(),
 		Level:     setLevel(entry.Level),
 		Facility:  hook.facility,
